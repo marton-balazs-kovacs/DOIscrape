@@ -105,7 +105,7 @@ def scrape(path, all_links=True):
     # Stripping white spaces
     doi_df[doi_df.columns[0]] = doi_df[doi_df.columns[0]].str.strip()
     # Excluding duplicates
-    #doi_df.drop_duplicates(subset=doi_df.columns[0], keep="first", inplace=True)
+    doi_df.drop_duplicates(subset=doi_df.columns[0], keep="first", inplace=True)
     print(f"{len(doi_df)} DOIs remained after duplicate removal.")
     # Transforming df to list
     doi_list = doi_df.to_numpy()
