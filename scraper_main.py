@@ -1,6 +1,6 @@
 from scraper_engine import *
 
-Scrape()
+scrape("./tes.csv")
 
 
 
