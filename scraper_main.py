@@ -1,6 +1,6 @@
 from scraper_engine import *
 
-scrape("./example_doi_list.csv", all_links=False)
+scrape(path="./example_doi_list.csv", all_links=False)
 
 
 

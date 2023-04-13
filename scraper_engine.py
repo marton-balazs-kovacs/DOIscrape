@@ -91,7 +91,7 @@ def scrape_url(url, all_links=True):
 def scrape(path, all_links=True):
     """
     This function looks up the webpages of research articles corresponding to a list of DOIs,
-    and extracts any email address from them. The function saves the DOIs at every tenth percentile
+    and extracts any email address from them. The function saves the DOIs at every quarter
     of the DOI lists' length.
     :param path: str. The path to the .csv file containing the DOIs as strings in the first column.
     :param all_links: boolean. If True all links of the initial webpage will be searched for additional email addresses.
@@ -99,14 +99,13 @@ def scrape(path, all_links=True):
     """
     # Creating a pandas df to store the results
     results = pd.DataFrame(columns=["doi", "emails"])
-
     # Loading DOIs to scrape
     doi_df = pd.read_csv(os.path.abspath(path))
     print(f"Starting with {len(doi_df)} DOIs.")
     # Stripping white spaces
     doi_df[doi_df.columns[0]] = doi_df[doi_df.columns[0]].str.strip()
     # Excluding duplicates
-    doi_df.drop_duplicates(subset=doi_df.columns[0], keep=False, inplace=True)
+    #doi_df.drop_duplicates(subset=doi_df.columns[0], keep="first", inplace=True)
     print(f"{len(doi_df)} DOIs remained after duplicate removal.")
     # Transforming df to list
     doi_list = doi_df.to_numpy()
@@ -118,11 +117,16 @@ def scrape(path, all_links=True):
         emails_from_doi = scrape_url(url, all_links=all_links)
         results = pd.concat([results, pd.DataFrame([{"doi": doi[0], "emails": emails_from_doi}])])
 
-        # Save results at every tenth percentile of the doi list
-        if (i + 1) % (len(doi_list) // 10) == 0 or i == len(doi_list) - 1:
-            save_path = os.path.abspath(f"./doiscaper_results_{int((i + 1) * 10 / len(doi_list))}.csv")
+        # Save results at every 25 percentile of the doi list
+        # If the list is greater or equal to 10
+        if len(doi_list) >= 10 and ((i + 1) % (len(doi_list) // 4) == 0 or i == len(doi_list) - 1):
+            save_path = os.path.abspath(f"doiscaper_results_{int((i + 1) * 4 / len(doi_list))}.csv")
             results.to_csv(save_path, index=False)
             print(f"Results saved to {save_path}.")
 
             # Reset results dataframe
             results = pd.DataFrame(columns=["doi", "emails"])
+        elif i == len(doi_list) - 1:
+            save_path = os.path.abspath("doiscaper_results.csv")
+            results.to_csv(save_path, index=False)
+            print(f"Results saved to {save_path}.")
