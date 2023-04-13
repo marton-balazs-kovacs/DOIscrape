@@ -21,7 +21,7 @@ The script was made and tested in Linux Mint environment.
 I suspect running it on Windows would require some extra troubleshooting.
 
 # Usage
-The main scraping function ('scrape') is in the 'scraper_main.py' file. Change the function arguments in this file according to your needs, then run the following code in the project folder: `pipenv run python scraper_main.py` 
+You can see an example usage of the functions in the 'scraper_main.py' file. Change the function arguments in this file according to your needs, then run the following code in the project folder: `pipenv run python scraper_main.py` 
 
 After a successful run the root folder should be populated with multiple '.csv' files containing the DOIs and the corresponding email addresses. 
 

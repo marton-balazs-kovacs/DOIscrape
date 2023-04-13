@@ -88,45 +88,36 @@ def scrape_url(url, all_links=True):
     return emails
 
 
-def scrape(path, all_links=True):
+def scrape(dois, all_links=True):
     """
     This function looks up the webpages of research articles corresponding to a list of DOIs,
-    and extracts any email address from them. The function saves the DOIs at every quarter
-    of the DOI lists' length.
-    :param path: str. The path to the .csv file containing the DOIs as strings in the first column.
+    and extracts any email address from them. T
+    :param dois: array. Array of DOIs to look up as strings.
     :param all_links: boolean. If True all links of the initial webpage will be searched for additional email addresses.
-    :return: The function returns a .csv file with two columns named 'doi' and 'emails'.
+    :return: The function returns a .csv file with two columns named 'doi', 'emails', and 'message'.
     """
     # Creating a pandas df to store the results
-    results = pd.DataFrame(columns=["doi", "emails"])
-    # Loading DOIs to scrape
-    doi_df = pd.read_csv(os.path.abspath(path))
-    print(f"Starting with {len(doi_df)} DOIs.")
+    results = pd.DataFrame(columns=["doi", "emails", "message"])
+
+    # Print the number of input dois
+    print(f"Starting with {len(dois)} DOIs.")
+
     # Stripping white spaces
-    doi_df[doi_df.columns[0]] = doi_df[doi_df.columns[0]].str.strip()
+    dois = [string.strip() for string in dois]
     # Excluding duplicates
-    doi_df.drop_duplicates(subset=doi_df.columns[0], keep="first", inplace=True)
-    print(f"{len(doi_df)} DOIs remained after duplicate removal.")
-    # Transforming df to list
-    doi_list = doi_df.to_numpy()
+    unique_series = pd.Series(dois).drop_duplicates(keep='first')
+    dois = unique_series.tolist()
+    print(f"{len(dois)} DOIs remained after duplicate removal.")
 
     # Scrape the email addresses based on the DOIs
-    for i, doi in enumerate(doi_list):
-        print(f"Checking DOI: {doi[0]}")
-        url = doi_to_url(doi[0])
-        emails_from_doi = scrape_url(url, all_links=all_links)
-        results = pd.concat([results, pd.DataFrame([{"doi": doi[0], "emails": emails_from_doi}])])
+    for i, doi in enumerate(dois):
+        print(f"Checking DOI: {doi}")
+        try:
+            url = doi_to_url(doi)
+            emails_from_doi = scrape_url(url, all_links=all_links)
+            results = pd.concat([results, pd.DataFrame([{"doi": doi, "emails": emails_from_doi, "message": ""}])])
+        except Exception as e:
+            results = pd.concat([results, pd.DataFrame([{"doi": doi, "emails": emails_from_doi, "message": e}])])
+            continue
 
-        # Save results at every 25 percentile of the doi list
-        # If the list is greater or equal to 10
-        if len(doi_list) >= 10 and ((i + 1) % (len(doi_list) // 4) == 0 or i == len(doi_list) - 1):
-            save_path = os.path.abspath(f"doiscaper_results_{int((i + 1) * 4 / len(doi_list))}.csv")
-            results.to_csv(save_path, index=False)
-            print(f"Results saved to {save_path}.")
-
-            # Reset results dataframe
-            results = pd.DataFrame(columns=["doi", "emails"])
-        elif i == len(doi_list) - 1:
-            save_path = os.path.abspath("doiscaper_results.csv")
-            results.to_csv(save_path, index=False)
-            print(f"Results saved to {save_path}.")
+    return results
